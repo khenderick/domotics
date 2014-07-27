@@ -496,7 +496,7 @@ void load_settings(void)
 	clear_settings();
 	eeprom_read_block((void*)&translationtable[0], (const void*)&eepromtable, 256);
 	clear_line(1);
-	put_string(1, "Loading ok");
+	put_string(1, "Loading OK");
 }
 void save_settings(void)
 {
@@ -504,7 +504,7 @@ void save_settings(void)
 	put_string(1, "Saving...");
 	eeprom_write_block((const void*)&translationtable[0], (void*)&eepromtable, 256);
 	clear_line(1);
-	put_string(1, "Saving ok");
+	put_string(1, "Saving OK");
 }
 
 void show_ip(void)
@@ -515,7 +515,7 @@ void show_ip(void)
 
 void init_xport(void)
 {
-	clear_line(1);
+	clear_line(0);
 	put_string(1, "Loading XPort...");
 
 	// cycle power
@@ -564,13 +564,13 @@ void init_xport(void)
 	put_string(0, "9\r");
 	delay_ms(5000);
 
-	clear_line(1);
-	put_string(1, "XPort ok");
+	clear_line(0);
+	put_string(1, "XPort OK");
 
 	strcpy(ipaddress, "NodeSet         ");
 	while (ipaddress[0] == 'N')
 	{
-		clear_line(1);
+		clear_line(0);
 		put_string(1, "Enter network...");
 
 		// cycle power
@@ -710,8 +710,11 @@ ISR(INT0_vect)
 		put_io(1, buttonaddress, currentoutputs);
 
 		save_current();
-		delay_ms(200);
 	}
+} 
+
+ISR(TIMER1_OVF_vect) {
+	show_led_feedback();
 }
 
 int main (void)
@@ -738,7 +741,7 @@ int main (void)
 
 	// some startup information
 	cursor_set_line(0);
-	put_string(1, "Domotics v1.37");
+	put_string(1, "Domotics v1.43");
 
 	// load current output settings
 	load_current();
@@ -748,15 +751,17 @@ int main (void)
 	latch();
 	show_led_feedback();
 
-	// re-initialize xport
-	init_xport();
-
 	// load translation table & fetch IP
 	load_settings();
 
 	// define interrupts and start them
 	GIMSK |= (1 << INT0);
+	TIMSK |= (1 << TOIE1);
+	TCCR1B |= (1 << CS12); // About every 2.27s
 	sei();
+
+	// re-initialize xport
+	init_xport();
 
 	while(1)
 	{
