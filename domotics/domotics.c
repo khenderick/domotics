@@ -586,9 +586,9 @@ void init_xport(void)
 		// get network information
 		put_string(0, "NC\r");
 		strcpy(ipaddress, clean_ip(uart_loadstring(' ', ' ')));
-		show_ip();
 		delay_ms(500);
 	}
+	show_ip();
 
 	// quit mode
 	put_string(0, "QU\r");
@@ -697,6 +697,7 @@ void handle_command(void)
 
 ISR(INT0_vect)
 {
+	delay_ms(5); // Anti-jitter
 	load();
 	uint64_t inputs = shift_int64_in();
 	if (inputs)
@@ -741,7 +742,7 @@ int main (void)
 
 	// some startup information
 	cursor_set_line(0);
-	put_string(1, "Domotics v1.43");
+	put_string(1, "Domotics v1.45");
 
 	// load current output settings
 	load_current();
